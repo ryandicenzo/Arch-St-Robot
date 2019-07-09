@@ -1,0 +1,386 @@
+Help on built-in module time:
+
+NNAAMMEE
+    time - This module provides various functions to manipulate time values.
+
+DDEESSCCRRIIPPTTIIOONN
+    There are two standard representations of time.  One is the number
+    of seconds since the Epoch, in UTC (a.k.a. GMT).  It may be an integer
+    or a floating point number (to represent fractions of seconds).
+    The Epoch is system-defined; on Unix, it is generally January 1st, 1970.
+    The actual value can be retrieved by calling gmtime(0).
+    
+    The other representation is a tuple of 9 integers giving local time.
+    The tuple items are:
+      year (including century, e.g. 1998)
+      month (1-12)
+      day (1-31)
+      hours (0-23)
+      minutes (0-59)
+      seconds (0-59)
+      weekday (0-6, Monday is 0)
+      Julian day (day in the year, 1-366)
+      DST (Daylight Savings Time) flag (-1, 0 or 1)
+    If the DST flag is 0, the time is given in the regular time zone;
+    if it is 1, the time is given in the DST time zone;
+    if it is -1, mktime() should guess based on the date and time.
+
+CCLLAASSSSEESS
+    builtins.tuple(builtins.object)
+        struct_time
+    
+    class ssttrruucctt__ttiimmee(builtins.tuple)
+     |  struct_time(iterable=(), /)
+     |  
+     |  The time value as returned by gmtime(), localtime(), and strptime(), and
+     |  accepted by asctime(), mktime() and strftime().  May be considered as a
+     |  sequence of 9 integers.
+     |  
+     |  Note that several fields' values are not the same as those defined by
+     |  the C language standard for struct tm.  For example, the value of the
+     |  field tm_year is the actual year, not year - 1900.  See individual
+     |  fields' descriptions for details.
+     |  
+     |  Method resolution order:
+     |      struct_time
+     |      builtins.tuple
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  ____rreedduuccee____(...)
+     |      Helper for pickle.
+     |  
+     |  ____rreepprr____(self, /)
+     |      Return repr(self).
+     |  
+     |  ----------------------------------------------------------------------
+     |  Static methods defined here:
+     |  
+     |  ____nneeww____(*args, **kwargs) from builtins.type
+     |      Create and return a new object.  See help(type) for accurate signature.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  ttmm__ggmmttooffff
+     |      offset from UTC in seconds
+     |  
+     |  ttmm__hhoouurr
+     |      hours, range [0, 23]
+     |  
+     |  ttmm__iissddsstt
+     |      1 if summer time is in effect, 0 if not, and -1 if unknown
+     |  
+     |  ttmm__mmddaayy
+     |      day of month, range [1, 31]
+     |  
+     |  ttmm__mmiinn
+     |      minutes, range [0, 59]
+     |  
+     |  ttmm__mmoonn
+     |      month of year, range [1, 12]
+     |  
+     |  ttmm__sseecc
+     |      seconds, range [0, 61])
+     |  
+     |  ttmm__wwddaayy
+     |      day of week, range [0, 6], Monday is 0
+     |  
+     |  ttmm__yyddaayy
+     |      day of year, range [1, 366]
+     |  
+     |  ttmm__yyeeaarr
+     |      year, for example, 1993
+     |  
+     |  ttmm__zzoonnee
+     |      abbreviation of timezone name
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes defined here:
+     |  
+     |  nn__ffiieellddss = 11
+     |  
+     |  nn__sseeqquueennccee__ffiieellddss = 9
+     |  
+     |  nn__uunnnnaammeedd__ffiieellddss = 0
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from builtins.tuple:
+     |  
+     |  ____aadddd____(self, value, /)
+     |      Return self+value.
+     |  
+     |  ____ccoonnttaaiinnss____(self, key, /)
+     |      Return key in self.
+     |  
+     |  ____eeqq____(self, value, /)
+     |      Return self==value.
+     |  
+     |  ____ggee____(self, value, /)
+     |      Return self>=value.
+     |  
+     |  ____ggeettaattttrriibbuuttee____(self, name, /)
+     |      Return getattr(self, name).
+     |  
+     |  ____ggeettiitteemm____(self, key, /)
+     |      Return self[key].
+     |  
+     |  ____ggeettnneewwaarrggss____(self, /)
+     |  
+     |  ____ggtt____(self, value, /)
+     |      Return self>value.
+     |  
+     |  ____hhaasshh____(self, /)
+     |      Return hash(self).
+     |  
+     |  ____iitteerr____(self, /)
+     |      Implement iter(self).
+     |  
+     |  ____llee____(self, value, /)
+     |      Return self<=value.
+     |  
+     |  ____lleenn____(self, /)
+     |      Return len(self).
+     |  
+     |  ____lltt____(self, value, /)
+     |      Return self<value.
+     |  
+     |  ____mmuull____(self, value, /)
+     |      Return self*value.
+     |  
+     |  ____nnee____(self, value, /)
+     |      Return self!=value.
+     |  
+     |  ____rrmmuull____(self, value, /)
+     |      Return value*self.
+     |  
+     |  ccoouunntt(self, value, /)
+     |      Return number of occurrences of value.
+     |  
+     |  iinnddeexx(self, value, start=0, stop=9223372036854775807, /)
+     |      Return first index of value.
+     |      
+     |      Raises ValueError if the value is not present.
+
+FFUUNNCCTTIIOONNSS
+    aassccttiimmee(...)
+        asctime([tuple]) -> string
+        
+        Convert a time tuple to a string, e.g. 'Sat Jun 06 16:26:11 1998'.
+        When the time tuple is not present, current time as returned by localtime()
+        is used.
+    
+    cclloocckk(...)
+        clock() -> floating point number
+        
+        Return the CPU time or real time since the start of the process or since
+        the first call to clock().  This has as much precision as the system
+        records.
+    
+    cclloocckk__ggeettrreess(...)
+        clock_getres(clk_id) -> floating point number
+        
+        Return the resolution (precision) of the specified clock clk_id.
+    
+    cclloocckk__ggeettttiimmee(...)
+        clock_gettime(clk_id) -> float
+        
+        Return the time of the specified clock clk_id.
+    
+    cclloocckk__ggeettttiimmee__nnss(...)
+        clock_gettime_ns(clk_id) -> int
+        
+        Return the time of the specified clock clk_id as nanoseconds.
+    
+    cclloocckk__sseettttiimmee(...)
+        clock_settime(clk_id, time)
+        
+        Set the time of the specified clock clk_id.
+    
+    cclloocckk__sseettttiimmee__nnss(...)
+        clock_settime_ns(clk_id, time)
+        
+        Set the time of the specified clock clk_id with nanoseconds.
+    
+    ccttiimmee(...)
+        ctime(seconds) -> string
+        
+        Convert a time in seconds since the Epoch to a string in local time.
+        This is equivalent to asctime(localtime(seconds)). When the time tuple is
+        not present, current time as returned by localtime() is used.
+    
+    ggeett__cclloocckk__iinnffoo(...)
+        get_clock_info(name: str) -> dict
+        
+        Get information of the specified clock.
+    
+    ggmmttiimmee(...)
+        gmtime([seconds]) -> (tm_year, tm_mon, tm_mday, tm_hour, tm_min,
+                               tm_sec, tm_wday, tm_yday, tm_isdst)
+        
+        Convert seconds since the Epoch to a time tuple expressing UTC (a.k.a.
+        GMT).  When 'seconds' is not passed in, convert the current time instead.
+        
+        If the platform supports the tm_gmtoff and tm_zone, they are available as
+        attributes only.
+    
+    llooccaallttiimmee(...)
+        localtime([seconds]) -> (tm_year,tm_mon,tm_mday,tm_hour,tm_min,
+                                  tm_sec,tm_wday,tm_yday,tm_isdst)
+        
+        Convert seconds since the Epoch to a time tuple expressing local time.
+        When 'seconds' is not passed in, convert the current time instead.
+    
+    mmkkttiimmee(...)
+        mktime(tuple) -> floating point number
+        
+        Convert a time tuple in local time to seconds since the Epoch.
+        Note that mktime(gmtime(0)) will not generally return zero for most
+        time zones; instead the returned value will either be equal to that
+        of the timezone or altzone attributes on the time module.
+    
+    mmoonnoottoonniicc(...)
+        monotonic() -> float
+        
+        Monotonic clock, cannot go backward.
+    
+    mmoonnoottoonniicc__nnss(...)
+        monotonic_ns() -> int
+        
+        Monotonic clock, cannot go backward, as nanoseconds.
+    
+    ppeerrff__ccoouunntteerr(...)
+        perf_counter() -> float
+        
+        Performance counter for benchmarking.
+    
+    ppeerrff__ccoouunntteerr__nnss(...)
+        perf_counter_ns() -> int
+        
+        Performance counter for benchmarking as nanoseconds.
+    
+    pprroocceessss__ttiimmee(...)
+        process_time() -> float
+        
+        Process time for profiling: sum of the kernel and user-space CPU time.
+    
+    pprroocceessss__ttiimmee__nnss(...)
+        process_time() -> int
+        
+        Process time for profiling as nanoseconds:
+        sum of the kernel and user-space CPU time.
+    
+    pptthhrreeaadd__ggeettccppuucclloocckkiidd(...)
+        pthread_getcpuclockid(thread_id) -> int
+        
+        Return the clk_id of a thread's CPU time clock.
+    
+    sslleeeepp(...)
+        sleep(seconds)
+        
+        Delay execution for a given number of seconds.  The argument may be
+        a floating point number for subsecond precision.
+    
+    ssttrrffttiimmee(...)
+        strftime(format[, tuple]) -> string
+        
+        Convert a time tuple to a string according to a format specification.
+        See the library reference manual for formatting codes. When the time tuple
+        is not present, current time as returned by localtime() is used.
+        
+        Commonly used format codes:
+        
+        %Y  Year with century as a decimal number.
+        %m  Month as a decimal number [01,12].
+        %d  Day of the month as a decimal number [01,31].
+        %H  Hour (24-hour clock) as a decimal number [00,23].
+        %M  Minute as a decimal number [00,59].
+        %S  Second as a decimal number [00,61].
+        %z  Time zone offset from UTC.
+        %a  Locale's abbreviated weekday name.
+        %A  Locale's full weekday name.
+        %b  Locale's abbreviated month name.
+        %B  Locale's full month name.
+        %c  Locale's appropriate date and time representation.
+        %I  Hour (12-hour clock) as a decimal number [01,12].
+        %p  Locale's equivalent of either AM or PM.
+        
+        Other codes may be available on your platform.  See documentation for
+        the C library strftime function.
+    
+    ssttrrppttiimmee(...)
+        strptime(string, format) -> struct_time
+        
+        Parse a string to a time tuple according to a format specification.
+        See the library reference manual for formatting codes (same as
+        strftime()).
+        
+        Commonly used format codes:
+        
+        %Y  Year with century as a decimal number.
+        %m  Month as a decimal number [01,12].
+        %d  Day of the month as a decimal number [01,31].
+        %H  Hour (24-hour clock) as a decimal number [00,23].
+        %M  Minute as a decimal number [00,59].
+        %S  Second as a decimal number [00,61].
+        %z  Time zone offset from UTC.
+        %a  Locale's abbreviated weekday name.
+        %A  Locale's full weekday name.
+        %b  Locale's abbreviated month name.
+        %B  Locale's full month name.
+        %c  Locale's appropriate date and time representation.
+        %I  Hour (12-hour clock) as a decimal number [01,12].
+        %p  Locale's equivalent of either AM or PM.
+        
+        Other codes may be available on your platform.  See documentation for
+        the C library strftime function.
+    
+    tthhrreeaadd__ttiimmee(...)
+        thread_time() -> float
+        
+        Thread time for profiling: sum of the kernel and user-space CPU time.
+    
+    tthhrreeaadd__ttiimmee__nnss(...)
+        thread_time() -> int
+        
+        Thread time for profiling as nanoseconds:
+        sum of the kernel and user-space CPU time.
+    
+    ttiimmee(...)
+        time() -> floating point number
+        
+        Return the current time in seconds since the Epoch.
+        Fractions of a second may be present if the system clock provides them.
+    
+    ttiimmee__nnss(...)
+        time_ns() -> int
+        
+        Return the current time in nanoseconds since the Epoch.
+    
+    ttzzsseett(...)
+        tzset()
+        
+        Initialize, or reinitialize, the local timezone to the value stored in
+        os.environ['TZ']. The TZ environment variable should be specified in
+        standard Unix timezone format as documented in the tzset man page
+        (eg. 'US/Eastern', 'Europe/Amsterdam'). Unknown timezones will silently
+        fall back to UTC. If the TZ environment variable is not set, the local
+        timezone is set to the systems best guess of wallclock time.
+        Changing the TZ environment variable without calling tzset *may* change
+        the local timezone used by methods such as localtime, but this behaviour
+        should not be relied on.
+
+DDAATTAA
+    CCLLOOCCKK__MMOONNOOTTOONNIICC = 4
+    CCLLOOCCKK__PPRROOCCEESSSS__CCPPUUTTIIMMEE__IIDD = 2
+    CCLLOOCCKK__RREEAALLTTIIMMEE = 1
+    CCLLOOCCKK__TTHHRREEAADD__CCPPUUTTIIMMEE__IIDD = 3
+    aallttzzoonnee = 18000
+    ddaayylliigghhtt = 1
+    ttiimmeezzoonnee = 21600
+    ttzznnaammee = ('CST', 'CDT')
+
+FFIILLEE
+    (built-in)
+
