@@ -6,7 +6,7 @@ from Point import Point
 from pathlib import Path
 
 class Robot:
-    name = ""   
+    name = ""
     position = Point(0, 0)
     heading = 0
 
@@ -26,8 +26,8 @@ class Robot:
         self.moveForward(distReq)
 
     def moveForward(self, p):
-        xd = math.cos (self.heading) * p
-        yd = math.sin (self.heading) * p
+        xd = math.cos(self.heading) * p
+        yd = math.sin(self.heading) * p
 
         self.position.x += xd
         self.position.y += yd
