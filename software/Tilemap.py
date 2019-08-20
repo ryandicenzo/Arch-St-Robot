@@ -15,7 +15,7 @@ class Tilemap:
         self.tiles = np.asarray(im)
 
         w, h, d = self.tiles.shape
-        self.map = [[1 if (self.tiles[x][y]==self.walk_tile).all() else 0 for x in range(w)] for y in range(h)]
+        self.tiles = [[0 if (self.tiles[x][y]==self.walk_tile).all() else 1 for x in range(w)] for y in range(h)]
 
 
     def gen_tile_image(self):
@@ -23,10 +23,14 @@ class Tilemap:
         return img
 
     def print_tiles(self):
-        for i in self.map:
+        for i in self.tiles:
             for j in i:
                 print(j, end="")
             print()
+
+
+    def get_tiles(self):
+        return self.tiles
 
     def draw_horizontal_line(self, x_start, x_end, y_level):
 
@@ -36,8 +40,7 @@ class Tilemap:
 
         return False
 
-tm = Tilemap('floor_plan.png')
-tm.print_tiles()
+
 
 #
 # Referenced from https://medium.com/@nicholas.w.swift/easy-a-star-pathfinding-7e6689c7f7b2
@@ -105,23 +108,17 @@ class AStar:
 
                 open.append(child)
 
-maze = [[0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+tm = Tilemap('floor_plan.png')
+tm.print_tiles()
+
+maze = tm.get_tiles()
 
 astar = AStar(maze)
 
 
 
-start = (0, 0)
-end = (7, 6)
+start = (0,0)
+end = (19,16)
 
 path = astar.gen_path(start, end)
 print(path)
