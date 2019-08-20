@@ -11,7 +11,7 @@ class Tilemap:
         self.init_tiles(floorplan)
 
     def init_tiles(self, file):
-        im = Image.open('./software/floor_plan.png')
+        im = Image.open('./floor_plan.png')
         self.tiles = np.asarray(im)
 
         w, h, d = self.tiles.shape
@@ -40,8 +40,6 @@ class Tilemap:
 
         return False
 
-
-
 #
 # Referenced from https://medium.com/@nicholas.w.swift/easy-a-star-pathfinding-7e6689c7f7b2
 #
@@ -51,8 +49,8 @@ class AStar:
 
 
     def gen_path(self, start, end):
-        start_node = Node(None, start, 0, 0)
-        end_node = Node(None, end, 0, 0)
+        start_node = Node(None, start)
+        end_node = Node(None, end)
 
         open = []
         closed = []
@@ -83,11 +81,11 @@ class AStar:
             for new_pos in [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]:
                 node_pos = (curr.position[0] + new_pos[0], curr.position[1] + new_pos[1])
 
-                if node_pos[0] > (len(maze) - 1) or node_pos[0] < 0 or node_pos[1] > (len(maze[len(maze)-1])-1) or node_pos[1] < 0:
+                if node_pos[0] > (len(self.maze) - 1) or node_pos[0] < 0 or node_pos[1] > (len(self.maze[len(self.maze)-1])-1) or node_pos[1] < 0:
                     continue
 
                 print(node_pos[1])
-                if maze[node_pos[0]][node_pos[1]] != 0:
+                if self.maze[node_pos[0]][node_pos[1]] != 0:
                     continue
 
                 new_node = Node(curr, node_pos)
@@ -108,17 +106,13 @@ class AStar:
 
                 open.append(child)
 
-tm = Tilemap('floor_plan.png')
-tm.print_tiles()
+    def draw_path(self, path_to_img, path_to_draw):
+        img = Image.open(path_to_img)
+        pixels = img.load()
 
-maze = tm.get_tiles()
+        for x,y in path_to_draw:
+            pixels[x,y] = (255, 0, 0, 255)
 
-astar = AStar(maze)
+        img.show()
 
 
-
-start = (0,0)
-end = (19,16)
-
-path = astar.gen_path(start, end)
-print(path)

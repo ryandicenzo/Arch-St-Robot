@@ -17,7 +17,7 @@ MOUSE_RADIUS = 10           #mouse radius from turn center, also ensure mouse ax
 MOUSE_DPI = 1000
 
 
-def move(movetype, dist, tol):
+def move(movetype, dist, tol=0.5):
     """ moves the robot until it has moved required distance
             to a tolerance tol. Reads position data from mouse.
             Outputs text packets to arduino via serial port.
