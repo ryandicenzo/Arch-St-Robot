@@ -1,5 +1,5 @@
-from Robot import Robot
-from Point import Point
+from software.Robot import Robot
+from software.Node import Point
 
 def startWorld():
     grigometh = Robot("grigo")
