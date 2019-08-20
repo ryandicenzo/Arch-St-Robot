@@ -39,6 +39,9 @@ class Tilemap:
 tm = Tilemap('floor_plan.png')
 tm.print_tiles()
 
+#
+# Referenced from https://medium.com/@nicholas.w.swift/easy-a-star-pathfinding-7e6689c7f7b2
+#
 class AStar:
     def __init__(self, maze):
         self.maze = maze
@@ -77,10 +80,11 @@ class AStar:
             for new_pos in [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]:
                 node_pos = (curr.position[0] + new_pos[0], curr.position[1] + new_pos[1])
 
-                if node_pos[0] > (len(map) - 1) or node_pos[0] < 0 or node_pos[1] > (len(map[len(map)-1])-1) or node_pos[1] < 0:
+                if node_pos[0] > (len(maze) - 1) or node_pos[0] < 0 or node_pos[1] > (len(maze[len(maze)-1])-1) or node_pos[1] < 0:
                     continue
 
-                if map[node_pos[0], node_pos[1]] != 0:
+                print(node_pos[1])
+                if maze[node_pos[0]][node_pos[1]] != 0:
                     continue
 
                 new_node = Node(curr, node_pos)
