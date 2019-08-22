@@ -1,11 +1,14 @@
-#Thomas Devlin 2019
+#
+# Thomas Devlin 2019
+#
+
 from math import *
 import serial
 import time
 import struct
 import threading
 
-#ser = serial.Serial('/dev/ttyUSB0')
+ser = serial.Serial('/dev/ttyUSB0')
 
 ARM_A = 0.035               #primary linkage arm length (m)
 ARM_B = 0.06                #secondary linkage arm length (m)
