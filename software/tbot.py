@@ -10,108 +10,130 @@ import threading
 
 ser = serial.Serial('/dev/ttyUSB0')
 
-ARM_A = 0.035               #primary linkage arm length (m)
-ARM_B = 0.06                #secondary linkage arm length (m)
-RAD_C = 0.15621838453       #platform radius (m)
-DIST_D = 0.048733971724     #vertical distance from input pivot to platform pivot (m)
-TURN_COEFF = [0, 0, 0]      #PID coeff for a turn
-STRAIGHT_COEFF = [0, 0, 0]  #PID coeff for a straight move
-MOUSE_RADIUS = 10           #mouse radius from turn center, also ensure mouse axes are normal to radius
-MOUSE_DPI = 1000
+class Robot():
+    ARM_A = 0.035               #primary linkage arm length (m)
+    ARM_B = 0.06                #secondary linkage arm length (m)
+    RAD_C = 0.15621838453       #platform radius (m)
+    DIST_D = 0.048733971724     #vertical distance from input pivot to platform pivot (m)
+    TURN_COEFF = [0, 0, 0]      #PID coeff for a turn
+    STRAIGHT_COEFF = [0, 0, 0]  #PID coeff for a straight move
+    MOUSE_RADIUS = 10           #mouse radius from turn center, also ensure mouse axes are normal to radius
+    MOUSE_DPI = 1000
 
+    def __init__(self):
+        self.heading = 0
+        self.xpos = 0
+        self.ypos = 0
+        self.mouse = Mouse(self.MOUSE_DPI)
+        self.vel = 0
 
-def move(movetype, dist, tol=0.5):
-    """ moves the robot until it has moved required distance
-            to a tolerance tol. Reads position data from mouse.
-            Outputs text packets to arduino via serial port.
-        movetype = 'straight' or 'turn'
-        dist = desired distance in mm or angle in radians
-        tol = tolerance in mm or degrees from desired distance or angle
-    """
-    assert(movetype == 'straight' or movetype == 'turn')
-    if movetype == 'turn':
-        tol = tol * MOUSE_RADIUS
-        dist = dist * MOUSE_RADIUS
-        pid = pid_add(TURN_COEFF)
-    else:
-        pid = pid_add(STRAIGHT_COEFF)
-    error = dist
-    tol = min(tol, MOUSE_DPI / 25.4)            #limit tolerance to mouse precision (should still use a much larger tolerance than minimum)
-    time_prev = time.time()
-    vel_prev = 0
-    mouse = Mouse(MOUSE_DPI)
+    def move(self, movetype, dist, tol=0.5):
+        """ moves the robot until it has moved required distance
+                to a tolerance tol. Reads position data from mouse.
+                Outputs text packets to arduino via serial port.
+            movetype = 'straight' or 'turn'
+            dist = desired distance in mm or angle in radians
+            tol = tolerance in mm or degrees from desired distance or angle
+        """
+        assert(movetype == 'straight' or movetype == 'turn')
+        if movetype == 'turn':
+            tol = tol * self.MOUSE_RADIUS
+            dist = dist * self.MOUSE_RADIUS
+            pid = self.pid_add(dist, self.TURN_COEFF)
+        else:
+            pid = self.pid_add(dist, self.STRAIGHT_COEFF)
+        error = dist
+        tol = min(tol, self.MOUSE_DPI / 25.4)            #limit tolerance to mouse precision (should still use a much larger tolerance than minimum)
+        time_prev = time.time()
+        print(time_prev)
+        vel_prev = 0
+        self.mouse = Mouse(self.MOUSE_DPI)
 
-    while error > tol:                          #PID loop
-        error = dist - get_position(mouse)[1]        #calculate error from mouse ypos
-        vel = pid(error, vel_prev)              #pid
-        vel_prev = vel
-        time_curr = time.time()
-        angle = angle(vel, vel_prev, time_curr - time_prev)
-        time_prev = time_curr
-        text_packet(movetype, vel, angle)
-    mouse.stop()
-    if movetype == 'straight':
-        return error
-    else:
-        return error / MOUSE_RADIUS
+        while error > tol:                          #PID loop
+            error = dist - self.get_position()[1]   #calculate error from mouse ypos
+            vel = pid(error, vel_prev)              #pid
+            vel_prev = vel
+            time_curr = time.time()
+            deltat = max(time_curr - time_prev, 0.0000001)
+            angle = self.angle(vel, vel_prev, deltat)
+            time_prev = time_curr
+            self.text_packet(movetype, vel, angle)
 
-def pid_add(coeff=[0,0,0]):
-    """ Generates a pid function with given coefficients
-    """
-    def pid(error, vel):
-        p = (error/dist) * coeff[0]
-        i = ((dist-error)/dist) * coeff[1]
-        d = vel * coeff[2]
-        return (p + i + d) / 3 #range should be -1 to +1
-    return pid
+        self.mouse.stop()
+        if movetype == 'straight':
+            self.xpos += (dist - error) * cos(self.heading)
+            self.ypos += (dist - error) * sin(self.heading)
+            return [self.xpos, self.ypos, self.heading, error]
+        else:
+            self.heading = (self.heading + (dist - (error / self.MOUSE_RADIUS))) % (2 * pi)
+            return [self.xpos, self.ypos, self.heading, error / self.MOUSE_RADIUS]
 
-def angle(vel, vel_prev, time):
-    """ return angle from vertical in degrees
-    """
-    accel = (vel - vel_prev) / time
-    platform_angle_rad = atan(accel / 9.81)
-    fn = add_forward_kinematics(ARM_A, ARM_B, RAD_C, DIST_D)
-    input_angle_rad = newton_raphson(platform_angle_rad, 1, fn, 0.0001)
-    return input_angle_rad * (180/pi)
+    def pid_add(self, dist, coeff=[0,0,0]):
+        """ Generates a pid function with given coefficients
+        """
+        def pid(error, vel):
+            p = (error/dist) * coeff[0]
+            i = ((dist-error)/dist) * coeff[1]
+            d = vel * coeff[2]
+            return (p + i + d) / 3 #range should be -1 to +1
+        return pid
 
-def add_forward_kinematics(arm_a, arm_b, rad_c, dist_d):
-    """ generates a forward kinematics function for a linkage of
-        given arm lengths
-    """
-    def forward_kinematics(x):
-        num = arm_a * cos(x) + sqrt(pow(arm_b, 2) - (pow(arm_a, 2) * pow(sin(x), 2))) - dist_d
-        denom = rad_c
-        return asin(num / denom)
-    return forward_kinematics
+    def angle(self, vel, vel_prev, time):
+        """ return angle from vertical in degrees
+        """
+        accel = (vel - vel_prev) / time
+        platform_angle_rad = atan(accel / 9.81)
+        fn = self.add_forward_kinematics(self.ARM_A, self.ARM_B, self.RAD_C, self.DIST_D)
+        input_angle_rad = self.newton_raphson(platform_angle_rad, pi / 2, fn, 0.0001)
+        return input_angle_rad * (180/pi)
 
-def forward_approx(x, fn, step_size):
-    """ returns a forward approximation of the
-        derivative of fn at x using step size
-        step_size
-    """
-    return (fn(x+step_size) - fn(x)) / step_size
+    def add_forward_kinematics(self, arm_a, arm_b, rad_c, dist_d):
+        """ generates a forward kinematics function for a linkage of
+            given arm lengths
+        """
+        def forward_kinematics(x):
+            num = arm_a * cos(x) + sqrt(pow(arm_b, 2) - (pow(arm_a, 2) * pow(sin(x), 2))) - dist_d
+            denom = rad_c
+            return asin(num / denom)
+        return forward_kinematics
 
-def get_position(mouse):
-    """ return (x, y) position in mm from an instance
-        of the Mouse class
-    """
-    return [mouse.get_x(), mouse.get_y()]
+    def forward_approx(self, x, fn, step_size):
+        """ returns a forward approximation of the
+            derivative of fn at x using step size
+            step_size
+        """
+        return (fn(x + step_size) - fn(x)) / step_size
 
-def text_packet(movetype, vel, angle):  #vel is vel if movetype straight, vel is omega if movetype turn
-    """ generate text packet and send via Serial
-        to arduino
-    """
-    packet = "{} {} {}".format(movetype, str(vel), str(angle))
-    print(packet)
-    ser.write(bytes(packet))
+    def get_position(self):
+        """ return (x, y) position in mm from an instance
+            of the Mouse class
+        """
+        return [self.mouse.get_x(), self.mouse.get_y()]
 
-def newton_raphson(goal, x0, fn, tol):
-    """ approximate root of fn using the Newton-Raphson
-        method
-    """
-    while abs(fn(x0) - goal) > tol:
-        x0 = x0 - (fn(x0) - goal) / forward_approx(x0, fn, 0.0001)
-    return x0
+    def text_packet(self, movetype, vel, angle):  #vel is vel if movetype straight, vel is omega if movetype turn
+        """ generate text packet and send via Serial
+            to arduino
+        """
+        packet = "{} {} {}".format(movetype, str(vel), str(angle))
+        print(packet)
+        ser.write(bytes(packet))
+
+    def newton_raphson(self, goal, x0, fn, tol):
+        """ approximate root of fn using the Newton-Raphson
+            method
+        """
+        while abs(fn(x0) - goal) > tol:
+            x0 = x0 - (fn(x0) - goal) / forward_approx(x0, fn, 0.0001)
+        return x0
+
+    def getxpos(self):
+        return self.xpos
+
+    def getypos(self):
+        return self.ypos
+
+    def getheading(self):
+        return self.heading
 
 class Mouse():
 
