@@ -15,8 +15,8 @@ class Robot():
     ARM_B = 0.06                #secondary linkage arm length (m)
     RAD_C = 0.15621838453       #platform radius (m)
     DIST_D = 0.048733971724     #vertical distance from input pivot to platform pivot (m)
-    TURN_COEFF = [0, 0, 0]      #PID coeff for a turn
-    STRAIGHT_COEFF = [0, 0, 0]  #PID coeff for a straight move
+    TURN_COEFF = [1, 0, 0]      #PID coeff for a turn
+    STRAIGHT_COEFF = [1, 0, 0]  #PID coeff for a straight move
     MOUSE_RADIUS = 10           #mouse radius from turn center, also ensure mouse axes are normal to radius
     MOUSE_DPI = 1000
 
@@ -45,21 +45,20 @@ class Robot():
         error = dist
         tol = min(tol, self.MOUSE_DPI / 25.4)            #limit tolerance to mouse precision (should still use a much larger tolerance than minimum)
         time_prev = time.time()
-        print(time_prev)
         vel_prev = 0
         self.mouse = Mouse(self.MOUSE_DPI)
 
         while error > tol:                          #PID loop
             error = dist - self.get_position()[1]   #calculate error from mouse ypos
             vel = pid(error, vel_prev)              #pid
-            vel_prev = vel
             time_curr = time.time()
             deltat = max(time_curr - time_prev, 0.0000001)
             angle = self.angle(vel, vel_prev, deltat)
+            vel_prev = vel
             time_prev = time_curr
             self.text_packet(movetype, vel, angle)
 
-        self.mouse.stop()
+        self.mouse.halt()
         if movetype == 'straight':
             self.xpos += (dist - error) * cos(self.heading)
             self.ypos += (dist - error) * sin(self.heading)
@@ -68,7 +67,7 @@ class Robot():
             self.heading = (self.heading + (dist - (error / self.MOUSE_RADIUS))) % (2 * pi)
             return [self.xpos, self.ypos, self.heading, error / self.MOUSE_RADIUS]
 
-    def pid_add(self, dist, coeff=[0,0,0]):
+    def pid_add(self, dist, coeff):
         """ Generates a pid function with given coefficients
         """
         def pid(error, vel):
@@ -82,9 +81,9 @@ class Robot():
         """ return angle from vertical in degrees
         """
         accel = (vel - vel_prev) / time
-        platform_angle_rad = atan(accel / 9.81)
+        platform_angle_rad = atan(accel / 9810)
         fn = self.add_forward_kinematics(self.ARM_A, self.ARM_B, self.RAD_C, self.DIST_D)
-        input_angle_rad = self.newton_raphson(platform_angle_rad, pi / 2, fn, 0.0001)
+        input_angle_rad = self.newton_raphson(platform_angle_rad, 1, fn, 0.01)
         return input_angle_rad * (180/pi)
 
     def add_forward_kinematics(self, arm_a, arm_b, rad_c, dist_d):
@@ -115,15 +114,14 @@ class Robot():
             to arduino
         """
         packet = "{} {} {}".format(movetype, str(vel), str(angle))
-        print(packet)
-        ser.write(bytes(packet))
+        ser.write(packet)
 
     def newton_raphson(self, goal, x0, fn, tol):
         """ approximate root of fn using the Newton-Raphson
             method
         """
         while abs(fn(x0) - goal) > tol:
-            x0 = x0 - (fn(x0) - goal) / forward_approx(x0, fn, 0.0001)
+            x0 = x0 - (fn(x0) - goal) / self.forward_approx(x0, fn, 0.0001)
         return x0
 
     def getxpos(self):
@@ -143,8 +141,9 @@ class Mouse():
         self.x = 0
         self.y = 0
         self.mouse_data = open('/dev/input/mice', 'rb')
-        t1 = threading.Thread(target = update_loop, args = (self))
-        t1.start()
+        self.t1 = threading.Thread(target = Mouse.update_loop, args = (self,))
+        self.t1.daemon = True
+        self.t1.start()
 
     def update_loop(self):
         while not self.stop:
@@ -156,11 +155,14 @@ class Mouse():
         self.x += a
         self.y += b
 
-    def stop(self):
+    def halt(self):
         self.stop = True
 
     def get_x(self):
-        return (self.x / self.dpi) * 25.4
+        return (float(self.x) / self.dpi) * 25.4
 
     def get_y(self):
-        return (self.y / self.dpi) * 25.4
+        return (float(self.y) / self.dpi) * 25.4
+
+
+r = Robot()
